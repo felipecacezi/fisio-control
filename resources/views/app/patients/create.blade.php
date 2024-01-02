@@ -227,6 +227,19 @@
                             </div>
 
                             <div class="mb-4">
+                                <label for="patient_exams"
+                                    class="block text-sm font-medium text-gray-600">Exames</label>
+                                <textarea id="patient_exams"
+                                    type="text"
+                                    name="patient_exams"
+                                    class="mt-1 p-2 w-full border rounded-md @error('patient_exams') border-red-500 @enderror"
+                                    required autofocus>{{ old('patient_exams') }}</textarea>
+                                @error('patient_exams')
+                                    <p class="text-red-500 text-xs mt-1">O campo exames em uso é obrigatório</p>
+                                @enderror
+                            </div>
+
+                            <div class="mb-4">
                                 <label for="patient_active"
                                     class="block text-sm font-medium text-gray-600">Ativo</label>
                                 <select id="patient_active"
@@ -244,6 +257,11 @@
                         </div>
 
                     </form>
+                    @vite(
+                        [
+                            'resources/js/plugins/addressApi.js',
+                        ]
+                    )
                     @include('app/components/popup_alerts')
                 </div>
             </div>

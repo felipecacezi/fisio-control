@@ -36,6 +36,10 @@
                                         <td class="py-2 px-4 border-b text-center">{{ $patient->patient_name }}</td>
                                         <td class="py-2 px-4 border-b text-center">{{ $patient->patient_street }}</td>
                                         <td class="py-2 px-4 border-b text-right">
+                                            <a href="{{ route('patientevolution.index', $patient->id) }}"
+                                                class="">
+                                                <i class="fa-solid fa-chart-line"></i>
+                                            </a>
                                             <a href="{{ route('patient.edit', $patient->id) }}"
                                                 class="">
                                                 <i class="fa-solid fa-pen-to-square"></i>

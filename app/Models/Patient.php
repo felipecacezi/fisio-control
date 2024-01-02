@@ -25,6 +25,7 @@ class Patient extends Model
         'patient_hma',
         'patient_personal_antecedents',
         'patient_drugs_in_use',
+        'patient_exams',
         'patient_active',
     ];
 

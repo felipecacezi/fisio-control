@@ -3,18 +3,28 @@
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
+use Illuminate\Http\Request;
+use App\Http\Services\PatientService;
 use App\Http\Requests\PatientCreateRequest;
 use App\Http\Requests\PatientUpdateRequest;
+
 
 class PatientController extends Controller
 {
     public function index()
     {
-        $arPatient = Patient::all()
-            ->where('patient_active', '=', '1');
+        $arPatient = PatientService::getAll();
         return view(
             'app/patients/index',
             compact('arPatient')
+        );
+    }
+
+    public function getPatient(Request $request)
+    {
+        return response(
+            PatientService::getFiltered($request->input()),
+            200
         );
     }
 
@@ -66,7 +76,6 @@ class PatientController extends Controller
                 ->route('patient.index')
                 ->with('success', "Paciente {$request->patient_name} criado com sucesso!");
         } catch (\Throwable $th) {
-            dd($th);
             return redirect()
                 ->route('patient.create')
                 ->with('error', "Ocorreu um problema ao gravar o paciente {$request->patient_name}, entre em contato com o suporte.");

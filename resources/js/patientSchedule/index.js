@@ -5,43 +5,51 @@ let elmntPatient = document.getElementsByName('patient_name')[0];
 let elmntEventDate = document.getElementsByName('patient_schedules_start_sched')[0];
 let elmntSchedId = document.getElementsByName('sched_id')[0];
 var calendar = null;
-const calendarConfigs = {
-    initialView: 'dayGridMonth',
-    headerToolbar: {
-        left: 'prev,next',
-        center: 'title',
-        right: 'dayGridMonth,dayGridWeek, addEventButton' // user can switch between the two
-    },
-    eventTimeFormat: {
-        hour: '2-digit',
-        minute: '2-digit',
-        meridiem: false,
-        hour12: false
-    },
-    eventClick: async function(element) {
-        let eventId = element.event.id;
-        let arEvent = await getEvent(eventId);
-        console.log(arEvent.data.schedule_id)
-        elmntSchedId.value = arEvent.data.schedule_id;
-        elmntPatient.value = arEvent.data.patient_name;
-        elmntEventDate.value = arEvent.data.patient_schedules_start_sched;
-        showModal('newSchedModal')
-    },
-    customButtons: {
-        addEventButton: {
-            text: 'Agendar',
-            click: function() {
-                showModal('newSchedModal')
-            }
-        }
-    },
-    locale: 'pt-br',
-};
 
 document.addEventListener("DOMContentLoaded", function(e) {
 
     var calendarEl = document.getElementById('calendar');
-    calendar = new FullCalendar.Calendar(calendarEl, calendarConfigs);
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next',
+            center: 'title',
+            right: 'dayGridMonth,dayGridWeek, addEventButton' // user can switch between the two
+        },
+        eventTimeFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            meridiem: false,
+            hour12: false
+        },
+        eventClick: async function(element) {
+            let eventId = element.event.id;
+            let arEvent = await getEvent(eventId);
+            elmntSchedId.value = arEvent.data[0].id;
+            elmntPatient.value = arEvent.data[0].title;
+            elmntPatient.setAttribute('data-id', arEvent.data[0].patient_id)
+            elmntEventDate.value = arEvent.data[0].start;
+            showModal('newSchedModal')
+        },
+        customButtons: {
+            addEventButton: {
+                text: 'Agendar',
+                click: function() {
+                    elmntPatient.value = '';
+                    elmntPatient.setAttribute('data-id', '');
+                    elmntEventDate.value = '';
+                    showModal('newSchedModal')
+                }
+            }
+        },
+        locale: 'pt-br',
+        eventSources: [
+            {
+                url: `/schedule/events`,
+                method: 'GET',
+            }
+        ]
+    });
     calendar.render();
 
     closeNewEventModal.addEventListener('click', ()=>{
@@ -54,8 +62,6 @@ document.addEventListener("DOMContentLoaded", function(e) {
         createNewSched()
     })
 
-    getEvents();
-
 });
 
 const getEvent = async function(eventId = '') {
@@ -64,23 +70,6 @@ const getEvent = async function(eventId = '') {
         url: `/schedule/events/${eventId}`,
     });
     return arEvent;
-}
-
-const getEvents = async function() {
-    let events = await axios({
-        method: 'get',
-        url: `/schedule/events`,
-    });
-
-    for (const key in events.data) {
-        calendar.addEvent({
-            backgroundColor: '#3252a8',
-            id: events.data[key].schedule_id,
-            title:  events.data[key].patient_name,
-            start:  events.data[key].patient_schedules_start_sched,
-            allDay: false,
-        });
-    }
 }
 
 $("#patientAutoComplete").autocomplete({
@@ -106,8 +95,9 @@ $("#patientAutoComplete").autocomplete({
     delay: 300
 });
 
-const newSchedFormValidation = function({patient_id, patient_name, patient_schedules_start_sched}){
+const newSchedFormValidation = function({id, patient_id, patient_name, patient_schedules_start_sched}){
     let response = {
+        id,
         patient_id,
         patient_schedules_start_sched,
         patient_schedules_active : 1
@@ -134,33 +124,41 @@ const newSchedFormValidation = function({patient_id, patient_name, patient_sched
 
 const createNewSched = async function(){
 
-    const elmntPatient = document.getElementsByName('patient_name')[0];
-    const elmntDateSched = document.getElementsByName('patient_schedules_start_sched')[0];
+    let retSched = null;
 
-    const arSched = newSchedFormValidation({
+    var arSched = newSchedFormValidation({
+        'id' : elmntSchedId.value ? elmntSchedId.value : null,
         'patient_id' : elmntPatient.getAttribute('data-id'),
         'patient_name' : elmntPatient.value,
-        'patient_schedules_start_sched' : elmntDateSched.value,
+        'patient_schedules_start_sched' : elmntEventDate.value,
     });
 
     if (!arSched) {
         return;
     }
 
-    let newSched = await axios({
-        method: 'post',
-        url: '/schedule/events/store',
-        data: arSched
-    });
+    if (arSched.id) {
+        retSched = await axios({
+            method: 'put',
+            url: '/schedule/events/edit',
+            data: arSched
+        });
+    } else {
+        retSched = await axios({
+            method: 'post',
+            url: '/schedule/events/store',
+            data: arSched
+        });
+    }
 
-    if (newSched.status != 200) {
+    if (retSched.status != 200) {
         document.getElementById('modalError').classList.remove('hidden');
     }
 
+    calendar.refetchEvents()
+
     btnNewSched.disabled = false;
     hideModal('newSchedModal');
-    document.getElementById('textModalSuccess').innerHTML = newSched.data;
+    document.getElementById('textModalSuccess').innerHTML = retSched.data;
     document.getElementById('modalSuccess').classList.remove('hidden');
-    getEvents();
-
 }

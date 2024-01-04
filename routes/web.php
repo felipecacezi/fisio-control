@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/schedule/events/create', [ScheduleController::class, 'create'])->name('patientschedule.create');
     Route::post('/schedule/events/store', [ScheduleController::class, 'store'])->name('patientschedule.store');
+    Route::put('/schedule/events/edit', [ScheduleController::class, 'edit'])->name('patientschedule.edit');
     Route::get('/schedule/events/{id?}', [ScheduleController::class, 'getEvents'])->name('patientschedule.getEvents');
     Route::get('/schedule', [ScheduleController::class, 'index'])->name('schedule.index');
 });

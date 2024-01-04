@@ -32,7 +32,7 @@
                     type="text"
                     name="patient_name"
                     class="mt-1 p-2 w-full border rounded-md"
-                    value="{{ old('patient_name') }}"
+                    value=""
                     maxlength="500"
                     required autofocus>
                     <p id="patientError" class="text-red-500 text-xs mt-1 hidden">O campo nome do paciente é obrigatório</p>
@@ -45,7 +45,7 @@
                     type="datetime-local"
                     name="patient_schedules_start_sched"
                     class="mt-1 p-2 w-full border rounded-md"
-                    value="{{ old('patient_schedules_start_sched') }}"
+                    value=""
                     required autofocus>
                     <p id="schedDateError" class="text-red-500 text-xs mt-1 hidden">O campo data/hora inicio é obrigatório</p>
             </div>

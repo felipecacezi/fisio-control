@@ -55,15 +55,14 @@ class PatientController extends Controller
     {
         try {
             $request->validated();
-            $patient = Patient::findOrFail($request->id);
-            $patient->update($request->all());
+            PatientService::update($request);
             return redirect()
                 ->route('patient.index')
                 ->with('success', "Paciente {$request->patient_name} atualizado com sucesso!");
         } catch (\Throwable $th) {
             return redirect()
                 ->route('patient.edit', $request->id)
-                ->with('error', "Ocorreu um problema ao alterar o paciente {$request->patient_name}, entre em contato com o suporte.");
+                ->with('error', $th->getMessage());
         }
     }
 
@@ -71,32 +70,27 @@ class PatientController extends Controller
     {
         try {
             $request->validated();
-            Patient::create($request->all());
+            PatientService::store($request);
             return redirect()
                 ->route('patient.index')
                 ->with('success', "Paciente {$request->patient_name} criado com sucesso!");
         } catch (\Throwable $th) {
             return redirect()
                 ->route('patient.create')
-                ->with('error', "Ocorreu um problema ao gravar o paciente {$request->patient_name}, entre em contato com o suporte.");
+                ->with('error', $th->getMessage());
         }
     }
 
     public function destroy($id)
     {
         try {
-            $patient = Patient::findOrFail($id);
-            $patient->update([
-                'patient_active' => 0
-            ]);
+            PatientService::destroy($id);
             return redirect()->route('patient.index')
                 ->with('success', 'Paciente excluído com sucesso!');
         } catch (\Throwable $th) {
             return redirect()
                 ->route('patient.index')
-                ->with('error', "Ocorreu um problema ao inativar o paciente selecionado, entre em contato com o suporte.");
+                ->with('error', $th->getMessage());
         }
     }
-
-
 }
